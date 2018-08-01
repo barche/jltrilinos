@@ -9,7 +9,7 @@
 
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 struct WrapDevice
@@ -94,25 +94,66 @@ struct WrapView
   }
 };
 
-
-
-struct WrapStaticCrsGraph
+template<size_t N>
+struct ViewParameters
 {
-  template<typename TypeWrapperT>
-  void operator()(TypeWrapperT&& wrapped)
-  {
-    typedef typename TypeWrapperT::type WrappedT;
-    typedef typename WrappedT::entries_type entries_type;
-    typedef typename WrappedT::row_map_type row_map_type;
-    wrapped.template constructor<const entries_type&, const row_map_type>();
-    wrapped.module().method("entries_type", [] (jlcxx::SingletonType<WrappedT>) { return jlcxx::SingletonType<entries_type>(); });
-    wrapped.module().method("row_map_type", [] (jlcxx::SingletonType<WrappedT>) { return jlcxx::SingletonType<row_map_type>(); });
-  }
 };
 
-void register_kokkos(jlcxx::Module& mod)
+template<>
+struct ViewParameters<3>
+{
+  using type = jlcxx::Parametric<jlcxx::TypeVar<1>, jlcxx::TypeVar<2>, jlcxx::TypeVar<3>>;
+  ViewParameters(jlcxx::Module& mod) : wrapped_type(mod.add_type<type>("View3"))
+  {
+  }
+  jlcxx::TypeWrapper<type> wrapped_type;
+};
+
+template<>
+struct ViewParameters<4>
+{
+  using type = jlcxx::Parametric<jlcxx::TypeVar<1>, jlcxx::TypeVar<2>, jlcxx::TypeVar<3>, jlcxx::TypeVar<4>>;
+  ViewParameters(jlcxx::Module& mod) : wrapped_type(mod.add_type<type>("View4"))
+  {
+  }
+  jlcxx::TypeWrapper<type> wrapped_type;
+};
+
+template<size_t N>
+ViewParameters<N>& view_parameters(jlcxx::Module& mod)
+{
+  static ViewParameters<N> m_params = ViewParameters<N>(mod);
+  return m_params;
+}
+
+template<typename T>
+struct NbViewParameters;
+
+template<typename... ParamsT>
+struct NbViewParameters<Kokkos::View<ParamsT...>>
+{
+  static constexpr size_t value = sizeof...(ParamsT);
+};
+
+template<typename T>
+constexpr size_t nb_view_params = NbViewParameters<T>::value;
+
+} // namespace jltrilinos
+
+namespace jlcxx
+{
+  template<unsigned Val>
+  struct BuildParameterList<Kokkos::MemoryTraits<Val>>
+  {
+    typedef ParameterList<std::integral_constant<unsigned, Val>> type;
+  };
+} // namespace jlcxx
+
+JLCXX_MODULE register_kokkos(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
+
   auto device_type = mod.add_type<Parametric<TypeVar<1>,TypeVar<2>>>("Device");
   mod.add_type<Kokkos::HostSpace>("HostSpace");
 #ifdef HAVE_TPETRA_INST_SERIAL
@@ -134,12 +175,26 @@ void register_kokkos(jlcxx::Module& mod)
 
   typedef ParameterList<Kokkos::LayoutLeft, Kokkos::LayoutRight> layouts_t;
 
-  mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>>>("View3")
-    .apply_combination<Kokkos::View, arrays_t, layouts_t, kokkos_devices_t>(WrapView());
-  mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>, TypeVar<4>>>("View4")
-    .apply_combination<Kokkos::View, arrays_t, layouts_t, kokkos_devices_t, ParameterList<void>>(WrapView());
-  mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>>>("StaticCrsGraph_cpp")
-    .apply_combination<Kokkos::StaticCrsGraph, local_ordinals_t, layouts_t, kokkos_devices_t>(WrapStaticCrsGraph());
-}
+  view_parameters<3>(mod).wrapped_type.apply_combination<Kokkos::View, arrays_t, layouts_t, kokkos_devices_t>(WrapView());
+  view_parameters<4>(mod).wrapped_type.apply_combination<Kokkos::View, arrays_t, layouts_t, kokkos_devices_t, ParameterList<void>>(WrapView());
 
-} // namespace trilinoswrap
+  mod.add_type<Parametric<TypeVar<1>>>("MemoryTraits")
+    .apply<Kokkos::MemoryTraits<0u>>([](auto) {});
+
+  mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>>>("StaticCrsGraph_cpp")
+    .apply_combination<Kokkos::StaticCrsGraph, local_ordinals_t, layouts_t, kokkos_devices_t>([&](auto wrapped)
+    {
+      typedef typename decltype(wrapped)::type WrappedT;
+      typedef typename WrappedT::entries_type entries_type;
+      typedef typename WrappedT::row_map_type row_map_type;
+
+      if(!jlcxx::static_type_mapping<entries_type>::has_julia_type())
+        view_parameters<nb_view_params<entries_type>>(mod).wrapped_type.template apply<entries_type>(WrapView());
+      if(!jlcxx::static_type_mapping<row_map_type>::has_julia_type())
+        view_parameters<nb_view_params<row_map_type>>(mod).wrapped_type.template apply<row_map_type>(WrapView());
+
+      wrapped.template constructor<const entries_type&, const row_map_type>();
+      wrapped.module().method("entries_type", [] (jlcxx::SingletonType<WrappedT>) { return jlcxx::SingletonType<entries_type>(); });
+      wrapped.module().method("row_map_type", [] (jlcxx::SingletonType<WrappedT>) { return jlcxx::SingletonType<row_map_type>(); });
+    });
+}

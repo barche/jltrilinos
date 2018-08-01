@@ -27,7 +27,7 @@ namespace jlcxx
   //template<> struct CopyConstructible<Teuchos::ParameterList> : std::false_type {};
 }
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 template<typename T>
@@ -107,9 +107,12 @@ struct WrapArray
   }
 };
 
-void register_teuchos(jlcxx::Module& mod)
+} // namespace jltrilinos
+
+JLCXX_MODULE register_teuchos(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   // Comm
   mod.add_type<Teuchos::Comm<int>>("Comm")
@@ -172,5 +175,3 @@ void register_teuchos(jlcxx::Module& mod)
   mod.add_type<Parametric<TypeVar<1>>>("Array", jlcxx::julia_type("AbstractVector"))
     .apply<Teuchos::Array<std::string>>(WrapArray());
 }
-
-} // namespace trilinoswrap

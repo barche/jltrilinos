@@ -7,7 +7,7 @@
 
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 template<typename T>
@@ -21,12 +21,13 @@ int arrayview_sum(const Teuchos::ArrayView<T>& av)
   return result;
 }
 
+} // namespace jltrilinos
+
 // Some methods to test types that would otherwise be difficult to test directly
-void register_testing(jlcxx::Module& mod)
+JLCXX_MODULE register_testing(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   mod.method("arrayview_sum", arrayview_sum<double>);
 }
-
-} // namespace trilinoswrap

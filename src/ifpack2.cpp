@@ -6,7 +6,7 @@
 
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 struct WrapPreconditioner
@@ -46,9 +46,12 @@ struct WrapFactory
   jlcxx::Module& m_module;
 };
 
-void register_ifpack2(jlcxx::Module& mod)
+} // namespace jltrilinos
+
+JLCXX_MODULE register_ifpack2(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>, TypeVar<4>>>("Preconditioner", tpetra_operator_type())
     .apply_combination<Ifpack2::Preconditioner, scalars_t, local_ordinals_t, global_ordinals_t, kokkos_nodes_t>(WrapPreconditioner());
@@ -56,5 +59,3 @@ void register_ifpack2(jlcxx::Module& mod)
   mod.add_type<Ifpack2::Factory>("Factory");
   jlcxx::for_each_type<RowMatrixTypes>(WrapFactory(mod));
 }
-
-} // namespace trilinoswrap

@@ -18,7 +18,7 @@ namespace jlcxx
   template<> struct IsBits<Belos::MsgType> : std::true_type {};
 }
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 template<typename T>
@@ -93,9 +93,12 @@ struct ApplySolverFactory
   using apply = Belos::SolverFactory<ST, Tpetra::MultiVector<ST,LT,GT,NT>, Tpetra::Operator<ST,LT,GT,NT>>;
 };
 
-void register_belos(jlcxx::Module& mod)
+} // namespace jltrilinos
+
+JLCXX_MODULE register_belos(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   mod.add_bits<Belos::ReturnType>("ReturnType", jlcxx::julia_type("CppEnum"));
   mod.set_const("Converged", Belos::Converged);
@@ -120,5 +123,3 @@ void register_belos(jlcxx::Module& mod)
   mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>>>("SolverFactory")
     .apply_combination<ApplySolverFactory, scalars_t, local_ordinals_t, global_ordinals_t, kokkos_nodes_t>(WrapSolverFactory());
 }
-
-} // namespace trilinoswrap

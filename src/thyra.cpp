@@ -28,7 +28,7 @@ template<typename ScalarT, typename... Params> struct SuperType<Thyra::TpetraLin
 
 }
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 template<typename T>
@@ -116,9 +116,12 @@ struct WrapNoOp
   }
 };
 
-void register_thyra(jlcxx::Module& mod)
+} // namespace jltrilinos
+
+JLCXX_MODULE register_thyra(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   auto vecspace_base = mod.add_type<Parametric<TypeVar<1>>>("VectorSpaceBase");
   vecspace_base.apply_combination<Thyra::VectorSpaceBase, scalars_t>(WrapNoOp());
@@ -159,5 +162,3 @@ void register_thyra(jlcxx::Module& mod)
   mod.add_type<Parametric<TypeVar<1>>>("LinearOpWithSolveFactoryBase")
     .apply_combination<Thyra::LinearOpWithSolveFactoryBase, scalars_t>(WrapLOWSFactory());
 }
-
-} // namespace trilinoswrap

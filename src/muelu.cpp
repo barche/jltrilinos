@@ -8,7 +8,7 @@
 
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 struct WrapHierarchy
@@ -79,9 +79,12 @@ struct WrapMueLuFunctions
   jlcxx::Module& m_module;
 };
 
-void register_muelu(jlcxx::Module& mod)
+} // namespace jltrilinos
+
+JLCXX_MODULE register_muelu(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>, TypeVar<4>>>("Hierarchy")
     .apply_combination<MueLu::Hierarchy, scalars_t, local_ordinals_t, global_ordinals_t, kokkos_nodes_t>(WrapHierarchy());
@@ -92,5 +95,3 @@ void register_muelu(jlcxx::Module& mod)
   typedef jlcxx::combine_types<jlcxx::ApplyType<MueLuParameters>, scalars_t, local_ordinals_t, global_ordinals_t, kokkos_nodes_t> params_t;
   jlcxx::for_each_type<params_t>(WrapMueLuFunctions(mod));
 }
-
-} // namespace trilinoswrap

@@ -6,7 +6,7 @@
 
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 typedef jlcxx::ParameterList<int> local_ordinals_t;
@@ -25,6 +25,6 @@ typedef jlcxx::ParameterList<double**, int*, const unsigned long*> arrays_t;
   typedef jlcxx::ParameterList<Kokkos::Serial, Kokkos::OpenMP, Kokkos::Device<Kokkos::Serial, Kokkos::HostSpace>, Kokkos::Device<Kokkos::OpenMP, Kokkos::HostSpace>> kokkos_devices_t;
 #endif
 
-} // namespace trilinoswrap
+} // namespace jltrilinos
 
 #endif

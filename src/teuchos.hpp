@@ -10,7 +10,7 @@
 #include "jlcxx/array.hpp"
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
+namespace jltrilinos
 {
   template<typename T>
   struct ArrayViewMirror
@@ -58,7 +58,7 @@ template<typename T>
 struct static_type_mapping<Teuchos::ArrayView<T>>
 {
   typedef typename std::remove_const<T>::type NonConstT;
-  typedef trilinoswrap::ArrayViewMirror<T> type;
+  typedef jltrilinos::ArrayViewMirror<T> type;
   static jl_datatype_t* julia_type() { return (jl_datatype_t*)apply_type(jlcxx::julia_type("ArrayView", "Teuchos"), jl_svec1(static_type_mapping<NonConstT>::julia_type())); }
 };
 
@@ -66,7 +66,7 @@ struct static_type_mapping<Teuchos::ArrayView<T>>
 template<typename T>
 struct ConvertToCpp<Teuchos::ArrayView<T>, false, true, true>
 {
-  Teuchos::ArrayView<T> operator()(trilinoswrap::ArrayViewMirror<T> arr_ref) const
+  Teuchos::ArrayView<T> operator()(jltrilinos::ArrayViewMirror<T> arr_ref) const
   {
     return Teuchos::ArrayView<T>(arr_ref.array, arr_ref.size);
   }

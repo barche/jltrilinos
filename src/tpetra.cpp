@@ -30,7 +30,7 @@ struct BuildParameterList<T<P1,P2,P3,P4,B>>
 
 }
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 // Wrap the template type Map<>
@@ -234,9 +234,12 @@ jl_datatype_t* tpetra_operator_type()
   return g_tpetra_operator_type;
 }
 
-void register_tpetra(jlcxx::Module& mod)
+} // namespace jltrilinos
+
+JLCXX_MODULE register_tpetra(jlcxx::Module& mod)
 {
   using namespace jlcxx;
+  using namespace jltrilinos;
 
   mod.method("version", Tpetra::version);
 
@@ -265,5 +268,3 @@ void register_tpetra(jlcxx::Module& mod)
   mod.add_type<Parametric<TypeVar<1>, TypeVar<2>, TypeVar<3>, TypeVar<4>>>("Vector", multivector.dt())
     .apply_combination<Tpetra::Vector, scalars_t, local_ordinals_t, global_ordinals_t, kokkos_nodes_t>(WrapVector());
 }
-
-} // namespace trilinoswrap

@@ -20,7 +20,7 @@ template<typename ST, typename LT, typename GT, typename NT> struct SuperType<Tp
 
 }
 
-namespace trilinoswrap
+namespace jltrilinos
 {
 
 typedef jlcxx::combine_types<jlcxx::ApplyType<Tpetra::RowMatrix>, scalars_t, local_ordinals_t, global_ordinals_t, kokkos_nodes_t> RowMatrixTypes;

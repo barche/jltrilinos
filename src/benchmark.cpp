@@ -10,10 +10,7 @@
 
 #include "jlcxx/jlcxx.hpp"
 
-namespace trilinoswrap
-{
-
-void register_benchmark(jlcxx::Module& mod)
+JLCXX_MODULE register_benchmark(jlcxx::Module& mod)
 {
   using namespace jlcxx;
 
@@ -41,5 +38,3 @@ void register_benchmark(jlcxx::Module& mod)
     }
   });
 }
-
-} // namespace trilinoswrap
